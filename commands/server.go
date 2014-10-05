@@ -161,12 +161,16 @@ func postRoute(c *gin.Context) {
 	}
 }
 
-func Offset(c *gin.Context) int {
-	curPage := cast.ToInt(c.Request.FormValue("p")) - 1
+func CurrentPage(c *gin.Context) int {
+	curPage := cast.ToInt(c.Request.FormValue("p"))
 	if curPage < 1 {
 		return 0
 	}
-	return pLimit * curPage
+	return curPage
+}
+
+func Offset(c *gin.Context) int {
+	return pLimit * CurrentPage(c)
 }
 
 func four04(c *gin.Context, message string) {
@@ -178,7 +182,17 @@ func homeRoute(c *gin.Context) {
 	channels := AllChannels()
 
 	var posts []Itm
-	results := Items().Find(bson.M{}).Skip(Offset(c)).Sort("-date").Limit(pLimit)
+
+	all := Items().Find(bson.M{}).Skip(Offset(c))
+
+	nextPage := 0
+	remaining, _ := all.Count()
+	if remaining > pLimit {
+		curPage := CurrentPage(c)
+		nextPage = curPage + 1
+	}
+
+	results := all.Sort("-date").Limit(pLimit)
 	results.All(&posts)
 
 	if len(posts) == 0 {
@@ -186,7 +200,9 @@ func homeRoute(c *gin.Context) {
 		return
 	}
 
-	obj := gin.H{"title": viper.GetString("title"), "items": posts, "posts": posts, "channels": channels}
+	obj := gin.H{"title": viper.GetString("title"), "items": posts,
+			"posts": posts, "channels": channels,
+			"nextPage": nextPage}
 
 	if strings.ToLower(c.Request.Header.Get("X-Requested-With")) == "xmlhttprequest" {
 		c.HTML(200, "items.html", obj)
