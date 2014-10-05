@@ -226,7 +226,8 @@ func (i Itm) FirstLink() (link rss.Link) {
 }
 
 func (i Itm) WorthShowing() bool {
-	if len(i.FullContent) > 100 {
+	minimumSize := viper.GetInt("minimum_post_size")
+	if len(i.FullContent) > minimumSize {
 		return true
 	}
 	return false

@@ -40,6 +40,7 @@ func init() {
 	viper.SetDefault("title", "Feeds powered by Dagobah")
 	viper.SetDefault("feeds", []string{"http://spf13.com/index.xml"})
 	viper.SetDefault("page_limit", 15)
+	viper.SetDefault("minimum_post_size", 100)
 
 	RootCmd.PersistentFlags().StringVar(&CfgFile, "config", "", "config file (default is $HOME/dagobah/config.yaml)")
 
