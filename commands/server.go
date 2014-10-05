@@ -24,7 +24,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-const pLimit = 15
+var pLimit int
 
 var serverCmd = &cobra.Command{
 	Use:   "server",
@@ -36,6 +36,7 @@ var serverCmd = &cobra.Command{
 func init() {
 	serverCmd.Flags().Int("port", 1138, "Port to run Dagobah server on")
 	viper.BindPFlag("port", serverCmd.Flags().Lookup("port"))
+	pLimit = viper.GetInt("page_limit")
 }
 
 func serverRun(cmd *cobra.Command, args []string) {
