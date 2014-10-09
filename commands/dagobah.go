@@ -38,6 +38,10 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	viper.SetDefault("title", "Feeds powered by Dagobah")
+	viper.SetDefault("description", "Some description")
+	viper.SetDefault("author", "Some author")
+	viper.SetDefault("email", "me@example.com")
+	viper.SetDefault("url", "http://example.com")
 	viper.SetDefault("feeds", []string{"http://spf13.com/index.xml"})
 	viper.SetDefault("page_limit", 15)
 	viper.SetDefault("minimum_post_size", 100)

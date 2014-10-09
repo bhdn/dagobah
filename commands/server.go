@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"gopkg.in/mgo.v2/bson"
 
@@ -22,6 +23,7 @@ import (
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/gorilla/feeds"
 )
 
 var pLimit int
@@ -60,6 +62,7 @@ func Server() {
 	})
 
 	r.GET("/", homeRoute)
+	r.GET("/atom", homeRouteAtom)
 	r.GET("/post/*key", postRoute)
 	r.GET("/search/*query", searchRoute)
 	r.GET("/static/*filepath", staticServe)
@@ -177,23 +180,28 @@ func four04(c *gin.Context, message string) {
 	c.HTML(404, "full.html", gin.H{"message": message, "title": viper.GetString("title")})
 }
 
-func homeRoute(c *gin.Context) {
+func homeItems(offset int) (posts []Itm, nextPage int) {
 
-	channels := AllChannels()
+	all := Items().Find(bson.M{}).Skip(offset)
 
-	var posts []Itm
-
-	all := Items().Find(bson.M{}).Skip(Offset(c))
-
-	nextPage := 0
+	nextPage = 0
 	remaining, _ := all.Count()
 	if remaining > pLimit {
-		curPage := CurrentPage(c)
+		curPage := offset
 		nextPage = curPage + 1
 	}
 
 	results := all.Sort("-date").Limit(pLimit)
 	results.All(&posts)
+
+	return
+}
+
+func homeRoute(c *gin.Context) {
+
+	channels := AllChannels()
+
+	posts, nextPage := homeItems(Offset(c))
 
 	if len(posts) == 0 {
 		four04(c, "No Articles")
@@ -209,6 +217,43 @@ func homeRoute(c *gin.Context) {
 	} else {
 		c.HTML(200, "full.html", obj)
 	}
+}
+
+func homeRouteAtom(c *gin.Context) {
+	now := time.Now()
+	posts, _ := homeItems(Offset(c))
+
+	feed := &feeds.Feed{
+		Title:       viper.GetString("title"),
+		Link:        &feeds.Link{Href: viper.GetString("url")},
+		Description: viper.GetString("description"),
+		Author:      &feeds.Author{viper.GetString("author"),
+					viper.GetString("email")},
+		Created:     now,
+	}
+
+	for _, post := range posts {
+
+		//FIXME move this conversion elsewhere
+		var link *feeds.Link
+		if len(post.Links) > 0 {
+			link = &feeds.Link{Href: post.Links[0].Href}
+		}
+
+		item := &feeds.Item{
+			Title:       post.Title,
+			Link:        link,
+			Description: "How to use interfaces <em>effectively</em>",
+			Created:     now,
+		}
+		feed.Items = append(feed.Items, item)
+	}
+
+	atom, _ := feed.ToAtom()
+
+	raw := []byte(atom) // FIXME: encoding? errors?
+
+	c.Data(200, "application/atom+xml", raw)
 }
 
 func searchRoute(c *gin.Context) {
