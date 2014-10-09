@@ -187,7 +187,7 @@ func homeItems(offset int) (posts []Itm, nextPage int) {
 	nextPage = 0
 	remaining, _ := all.Count()
 	if remaining > pLimit {
-		curPage := offset
+		curPage := offset / pLimit
 		nextPage = curPage + 1
 	}
 
