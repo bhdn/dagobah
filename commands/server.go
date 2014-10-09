@@ -243,7 +243,7 @@ func homeRouteAtom(c *gin.Context) {
 		item := &feeds.Item{
 			Title:       post.Title,
 			Link:        link,
-			Description: "How to use interfaces <em>effectively</em>",
+			Description: post.Description,
 			Created:     now,
 		}
 		feed.Items = append(feed.Items, item)
