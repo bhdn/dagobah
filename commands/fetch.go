@@ -222,6 +222,11 @@ func (i Itm) FirstLink() (link rss.Link) {
 	if len(i.Links) == 0 || i.Links[0] == nil {
 		return
 	}
+	for _, link := range i.Links {
+		if link.Rel == "alternate" {
+			return *link
+		}
+	}
 	return *i.Links[0]
 }
 
