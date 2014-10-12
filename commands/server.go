@@ -236,9 +236,8 @@ func homeRouteAtom(c *gin.Context) {
 
 		//FIXME move this conversion elsewhere
 		var link *feeds.Link
-		if len(post.Links) > 0 {
-			link = &feeds.Link{Href: post.Links[0].Href}
-		}
+		rssLink := post.FirstLink()
+		link = &feeds.Link{Href: rssLink.Href}
 
 		item := &feeds.Item{
 			Title:       post.Title,
