@@ -65,21 +65,10 @@ func Server() {
 	r.GET("/atom", homeRouteAtom)
 	r.GET("/post/*key", postRoute)
 	r.GET("/search/*query", searchRoute)
-	r.GET("/static/*filepath", staticServe)
+	r.ServeFiles("/static/*filepath", rice.MustFindBox("static").HTTPBox())
 	r.GET("/channel/*key", channelRoute)
 	fmt.Println("Running on port:", port)
 	r.Run(":" + port)
-}
-
-func staticServe(c *gin.Context) {
-	static, err := rice.FindBox("static")
-	if err != nil {
-		log.Fatal(err)
-	}
-	original := c.Request.URL.Path
-	c.Request.URL.Path = c.Params.ByName("filepath")
-	http.FileServer(static.HTTPBox()).ServeHTTP(c.Writer, c.Request)
-	c.Request.URL.Path = original
 }
 
 func RunnerMiddleware() gin.HandlerFunc {
