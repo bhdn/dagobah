@@ -10,7 +10,6 @@ import (
 	"html"
 	"html/template"
 	"log"
-	"net/http"
 	"os"
 	"strings"
 	"time"
